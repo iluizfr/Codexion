@@ -1,8 +1,8 @@
 #include "codexion.h"
 
-t_data    create_data(char **argv)
+t_data  create_data(char **argv)
 {
-    t_data    data;
+    t_data  data;
 
     data.number_of_coders = atoi(argv[1]);
     data.time_to_burnout = atoi(argv[2]);
