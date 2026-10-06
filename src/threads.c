@@ -2,93 +2,85 @@
 
 int compile(t_coder *coder_ptr)
 {
-    pthread_mutex_t mutex;
-    if (coder_ptr->left_dongle != NULL && coder_ptr->right_dongle != NULL)
-    {
-        printf("%d is compiling\n", coder_ptr->id);
-        coder_ptr->left_dongle->is_usable = 1;
-        coder_ptr->right_dongle->is_usable = 1;
+    printf("%d is compiling\n\n", coder_ptr->id);
 
-        pthread_mutex_unlock(coder_ptr->left_dongle);
-        pthread_mutex_unlock(coder_ptr->right_dongle);
-        coder_ptr->left_dongle = NULL;
-        coder_ptr->right_dongle = NULL;
-    }
+    pthread_mutex_unlock(&coder_ptr->left_dongle->mutex);
+    pthread_mutex_unlock(&coder_ptr->right_dongle->mutex);
+
+    return 0;
 }
 
 void	*routine(void *arg)
 {
     t_coder	*coder_ptr = (t_coder *)arg;
-    t_dongle *dongle_ptr;
-    int i;
+    int     is_right_lock;
+    int     is_left_lock;
 
-    i = 0;
-    while (i < coder_ptr->data.number_of_coders)
-    {
-        if (coder_ptr->dongles_ptr[i].is_usable)
-        {
-            dongle_ptr = &coder_ptr->dongles_ptr[i];
+    is_right_lock = pthread_mutex_trylock(&coder_ptr->right_dongle->mutex);
 
-            if (coder_ptr->left_dongle == NULL)
-            {
-                pthread_mutex_lock(dongle_ptr);
-                coder_ptr->left_dongle = dongle_ptr;
-                dongle_ptr->is_usable = 0;
-                printf("%d has taken a dongle 'left'\n", coder_ptr->id);
-                i++;
-            }
+    if (!is_right_lock) {
+        is_left_lock = pthread_mutex_trylock(&coder_ptr->left_dongle->mutex);
 
-            if (coder_ptr->right_dongle == NULL && dongle_ptr->is_usable)
-            {
-                pthread_mutex_lock(dongle_ptr);
-                coder_ptr->right_dongle = dongle_ptr;
-                dongle_ptr->is_usable = 0;
-                printf("%d has taken a dongle 'right'\n", coder_ptr->id);
-            }
+        if (!is_left_lock) {
+            printf("%d has taken a dongle\n", coder_ptr->id);
+            printf("%d has taken a dongle\n", coder_ptr->id);
+            compile(coder_ptr);
         }
-        i++;
+        else {
+            pthread_mutex_unlock(&coder_ptr->right_dongle->mutex);
+        }
     }
-    compile(coder_ptr);
 
-	return NULL;
+    return NULL;
 }
 
 void	*initialize_coders(t_data data)
 {
     int			i;
+    int         n_coders;
     t_coder		coders[data.number_of_coders];
-    t_dongle     dongles[data.number_of_coders];
+    t_dongle    dongles[data.number_of_coders];
+    t_manager   manager;
 
 	i = 0;
-    while (i < data.number_of_coders)
+    n_coders = data.number_of_coders;
+    manager.timestamp = 0;
+
+    while (i < n_coders)
     {
         dongles[i].dogle_id = i + 1;
-        dongles[i].is_usable = 1;
         dongles[i].dogle_cooldown = data.dongle_cooldown;
+        pthread_mutex_init(&dongles[i].mutex, NULL);
         i++;
     }
+
     i = 0;
-    while (i < data.number_of_coders)
+    while (i < n_coders)
     {
-		coders[i].id = i + 1;
-		coders[i].compile_count = 0;
-		coders[i].data = data;
-        coders[i].dongles_ptr = dongles;
-        coders[i].left_dongle = NULL;
-        coders[i].right_dongle = NULL;
+        if (i == 0)
+            coders[i].left_dongle = &dongles[data.number_of_coders - 1];
+        else
+            coders[i].left_dongle = &dongles[i - 1];
+
+        coders[i].id = i + 1;
+        coders[i].compile_count = 0;
+        coders[i].data = data;
+        coders[i].right_dongle = &dongles[i];
+        coders[i].last_compile = 0;
+        coders[i].manager = &manager;
 
 		pthread_create(&coders[i].thread, NULL, routine, &coders[i]);
 		i++;
     }
 
 	i = 0;
-    while (i < data.number_of_coders)
+    while (i < n_coders)
 		pthread_join(coders[i++].thread, NULL);
+    i = 0;
+    while (i < n_coders)
+    {
+        pthread_mutex_destroy(&dongles[i++].mutex);
+    }
 
 	return NULL;
 }
-
-/*void *initialize(s_data data)
-{
-    return;
-}*/

@@ -6,10 +6,8 @@ int verify_arg(char *arg)
 
     value = atoi(arg);
     if (value < 0)
-    {
-        printf("The argument '%s' must be positive.\n", arg);
         return (0);
-    }
+
     return (1);
 }
 
@@ -35,6 +33,14 @@ int verify_args(char **argv)
         {
             printf("'%s' must be positive.", argv[j]);
             return (-1);
+        }
+        if (j == 1)
+        {
+            if (atoi(argv[j]) == 1)
+            {
+                printf("Its necessary at Least 2 coders to compile.");
+                return (-1);
+            }
         }
         j++;
     }

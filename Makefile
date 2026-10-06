@@ -3,7 +3,7 @@ SRC    = src/create_data.c src/parser.c src/threads.c main.c
 OBJ    = $(SRC:.c=.o)
 CFLAGS = -Wall -Wextra -Werror -g -I include
 CC     = gcc
-DEFAULT_VALUE_FOR_TEST = 3 1000 100 100 100 3 100 "fifo"
+DEFAULT_VALUE_FOR_TEST = 4 1000 100 100 100 3 100 "fifo"
 
 all: $(NAME)
 

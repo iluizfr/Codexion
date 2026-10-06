@@ -23,23 +23,31 @@ typedef struct
 
 typedef struct
 {
-	int	dogle_id;
-	int	dogle_cooldown;
-	int	is_usable;
-}		t_dongle;
+	int				dogle_id;
+	int				dogle_cooldown;
+
+    pthread_mutex_t	mutex;
+}					t_dongle;
+
+typedef struct s_manager
+{
+    int         timestamp;
+}               t_manager;
 
 typedef struct	s_coder
 {
     pthread_t		thread;
     int				id;
     int				compile_count;
+    int             time;
     long			last_compile;
 
-	t_dongle		*dongles_ptr;
 	t_dongle 		*left_dongle;
 	t_dongle 		*right_dongle;
+    t_manager       *manager;
     t_data			data;
 }					t_coder;
+
 
 void	*initialize_coders(t_data data);
 int		parser(int argc, char **argv);
