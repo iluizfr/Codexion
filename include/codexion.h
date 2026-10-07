@@ -29,27 +29,33 @@ typedef struct
     pthread_mutex_t	mutex;
 }					t_dongle;
 
-typedef struct s_manager
-{
-    int         timestamp;
-}               t_manager;
-
 typedef struct	s_coder
 {
-    pthread_t		thread;
     int				id;
-    int				compile_count;
     int             time;
-    long			last_compile;
+    int			    last_compile;
+    int				compile_count;
 
 	t_dongle 		*left_dongle;
 	t_dongle 		*right_dongle;
-    t_manager       *manager;
+    pthread_t		thread;
     t_data			data;
+
 }					t_coder;
 
+typedef struct s_manager
+{
+    int             timestamp;
+    int             n_compiles;
 
-void	*initialize_coders(t_data data);
+    t_coder         *coders;
+    pthread_t       thread;
+    pthread_mutex_t mutex;
+
+}                   t_manager;
+
+
+void	*initialize(t_data data);
 int		parser(int argc, char **argv);
 void	*routine(void *arg);
 t_data	create_data(char **argv);

@@ -10,7 +10,7 @@ int main(int argc, char **argv)
         return (1);
     }
     data = create_data(argv);
-    initialize_coders(data);
+    initialize(data);
 
     return 0;
 }
