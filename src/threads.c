@@ -1,124 +1,164 @@
 #include "codexion.h"
 
-int compile(t_coder *coder_ptr)
-{
-    printf("%d is compiling\n", coder_ptr->id);
-    coder_ptr->compile_count++;
-    pthread_mutex_unlock(&coder_ptr->left_dongle->mutex);
-    pthread_mutex_unlock(&coder_ptr->right_dongle->mutex);
+ // ------ codexion ------
 
-    return 1;
+long    get_time(void)
+{
+    struct timeval tv;
+
+    gettimeofday(&tv, NULL);
+    return (tv.tv_sec * 1000L + tv.tv_usec / 1000L);
 }
 
-void	*routine(void *arg)
+long    elapsed_time(t_manager *manager)
 {
-    t_coder	*coder_ptr = (t_coder *)arg;
-    int     is_right_lock;
-    int     is_left_lock;
-    int     is_compiled;
-    int     is_refactoring;
-
-    if (coder_ptr->compile_count == coder_ptr->data.number_of_compiles_required)
-    {
-        printf("%d has made the number of compiles required.", coder_ptr->id);
-        return NULL;
-    }
-
-    is_compiled = 0;
-    is_refactoring = 0;
-    is_right_lock = pthread_mutex_trylock(&coder_ptr->right_dongle->mutex);
-
-    if (is_right_lock == 0)
-    {
-        printf("%d has taken a dongle\n", coder_ptr->id);
-        is_left_lock = pthread_mutex_trylock(&coder_ptr->left_dongle->mutex);
-
-        if (is_left_lock == 0)
-        {
-            printf("%d has taken a dongle\n", coder_ptr->id);
-            // if we have both dongle, compile
-            is_compiled = compile(coder_ptr);
-
-            if (is_compiled)
-            {
-                printf("%d is debugging\n", coder_ptr->id);
-                is_refactoring = 1;
-            }
-            if (is_refactoring)
-            {
-                printf("%d is refactoring\n", coder_ptr->id);
-            }
-        }
-        else
-        {
-            pthread_mutex_unlock(&coder_ptr->right_dongle->mutex);
-        }
-    }
-    return NULL;
+    return (get_time() - manager->start_time);
 }
 
-void    init_dongles(t_dongle *dongles)
+int     has_burned(t_coder *coder, t_manager *manager)
 {
+    long    current_time;
 
+    current_time = get_time();
+    if (current_time - coder->last_compile >= manager->time_to_burnout)
+        return (1);
+    return (0);
 }
 
-void	*initialize(t_data data)
+ // ------ time management ------
+
+void    init_dongles(t_dongle *dongles, int n_coders, int cooldown)
 {
-    int			i;
-    int         n_coders;
-    //int         number_of_comp_required;
-    t_coder		coders[data.number_of_coders];
-    t_dongle    dongles[data.number_of_coders];
-    t_manager   manager;
+    int i;
 
-	i = 0;
-    manager.timestamp = 0;
-    n_coders = data.number_of_coders;
-    //number_of_comp_required = data.number_of_compiles_required * n_coders;
-
+    i = 0;
     while (i < n_coders)
     {
         dongles[i].dogle_id = i + 1;
-        dongles[i].dogle_cooldown = data.dongle_cooldown;
+        dongles[i].dogle_cooldown = cooldown;
         pthread_mutex_init(&dongles[i].mutex, NULL);
         i++;
     }
+}
+
+void    init_coders(t_coder *coders, int n_coders, t_dongle *dongles, int compiles_required)
+{
+    int i;
 
     i = 0;
     while (i < n_coders)
     {
         if (i == 0)
-            coders[i].left_dongle = &dongles[data.number_of_coders - 1];
+            coders[i].left_dongle = &dongles[n_coders - 1];
         else
             coders[i].left_dongle = &dongles[i - 1];
 
         coders[i].id = i + 1;
         coders[i].compile_count = 0;
-        coders[i].data = data;
         coders[i].right_dongle = &dongles[i];
         coders[i].last_compile = 0;
-        coders[i].manager = &manager;
+        coders[i].compiles_required = compiles_required;
 		i++;
     }
+}
+
+ // ------ initialization of pieces ------
+
+int     need_to_compile(t_coder *coder, int compiles_required)
+{
+    if (coder->compile_count < compiles_required)
+        return (1);
+
+    return (0);
+}
+
+int     compile(t_coder *coder)
+{
+    pthread_mutex_lock(&coder->right_dongle->mutex);
+    pthread_mutex_lock(&coder->left_dongle->mutex);
+    coder->last_compile = get_time();
+
+    printf("%ld %d is compiling\n", coder->last_compile, coder->id);
+
+    coder->compile_count++;
+  
+    pthread_mutex_unlock(&coder->right_dongle->mutex);
+    pthread_mutex_unlock(&coder->left_dongle->mutex);
+
+    return 1;
+}
+
+ // ------ hard work ------
+
+ void	*coders_routine(void *arg)
+{
+
+    t_coder     *coder;
+
+    coder = (t_coder *)arg;
+
+    while (need_to_compile(coder, coder->compiles_required))
+    {
+        compile(coder);
+    }
+    return NULL;
+}
+
+void    *manager_routine(void *arg)
+{
+    int         i;
+    int         j;
+    int         compiles;
+    t_manager   *manager;
+    t_coder     *coders;
 
     i = 0;
-    while (i < n_coders)
+    j = 0;
+    compiles = 0;
+    manager = (t_manager *)arg;
+    coders = &manager->coders;
+
+    while (i < manager->data.number_of_coders)
     {
-		pthread_create(&coders[i].thread, NULL, routine, &coders[i]);
-		i++;
+        pthread_create(coders[i].thread, NULL, coders_routine, &coders[i]);
+        i++;
     }
+
+    while (j < manager->data.number_of_coders)
+    {
+		pthread_join(coders[j++].thread, NULL);
+    }
+
+    return NULL;
+}
+
+ // ------ routines ------
+
+void    run(t_data data)
+{
+    int			i;
+    t_coder		coders[data.number_of_coders];
+    t_dongle    dongles[data.number_of_coders];
+    t_manager   manager;
 
 	i = 0;
-    while (i < n_coders)
-    {
-		pthread_join(coders[i++].thread, NULL);
-    }
+    manager.data = data;
+    manager.n_compiles = 0;
 
-    i = 0;
-    while (i < n_coders)
-    {
+    init_dongles(dongles, data.number_of_coders, data.dongle_cooldown);
+    init_coders(coders, data.number_of_coders, dongles, data.number_of_compiles_required);
+
+    // Create the main thread wich will create more in the routine
+    pthread_mutex_init(&manager.mutex, NULL);
+    manager.start_time = get_time();
+    pthread_create(manager.thread, NULL, manager_routine, &manager);
+    pthread_join(manager.thread, NULL);
+
+
+    while (i < data.number_of_coders)
         pthread_mutex_destroy(&dongles[i++].mutex);
-    }
 
-	return NULL;
+    pthread_mutex_destroy(&manager.thread);
 }
+
+ // ------ principal function ------

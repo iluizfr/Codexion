@@ -8,6 +8,7 @@
 # include <pthread.h>
 # include <ctype.h>
 # include <string.h>
+# include <sys/time.h>
 
 typedef struct
 {
@@ -32,30 +33,32 @@ typedef struct
 typedef struct	s_coder
 {
     int				id;
-    int             time;
-    int			    last_compile;
+    long			last_compile;
     int				compile_count;
+    int             compiles_required;
 
-	t_dongle 		*left_dongle;
 	t_dongle 		*right_dongle;
+	t_dongle 		*left_dongle;
     pthread_t		thread;
-    t_data			data;
 
 }					t_coder;
 
 typedef struct s_manager
 {
-    int             timestamp;
     int             n_compiles;
+    int             required_compiles;
+    long            time_to_burnout;
+    long            start_time;
 
     t_coder         *coders;
     pthread_t       thread;
     pthread_mutex_t mutex;
+    t_data          data;
 
 }                   t_manager;
 
 
-void	*initialize(t_data data);
+void	run(t_data data);
 int		parser(int argc, char **argv);
 void	*routine(void *arg);
 t_data	create_data(char **argv);
