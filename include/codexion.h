@@ -10,6 +10,8 @@
 # include <string.h>
 # include <sys/time.h>
 
+typedef struct s_manager t_manager;
+
 typedef struct
 {
     int		number_of_coders;
@@ -39,12 +41,14 @@ typedef struct	s_coder
 
 	t_dongle 		*right_dongle;
 	t_dongle 		*left_dongle;
+    t_manager       *manager;
     pthread_t		thread;
 
 }					t_coder;
 
 typedef struct s_manager
 {
+    int             i;
     int             n_compiles;
     int             required_compiles;
     long            time_to_burnout;
