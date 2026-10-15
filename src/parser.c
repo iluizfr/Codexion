@@ -34,14 +34,6 @@ int verify_args(char **argv)
             printf("'%s' must be positive.", argv[j]);
             return (-1);
         }
-        if (j == 1)
-        {
-            if (atoi(argv[j]) == 1)
-            {
-                printf("Its necessary at Least 2 coders to compile.");
-                return (-1);
-            }
-        }
         j++;
     }
     if ((strcmp(argv[8], "fifo") != 0) && (strcmp(argv[8], "edf") != 0))

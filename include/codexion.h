@@ -55,6 +55,7 @@ typedef struct s_manager
     long            start_time;
 
     t_coder         *coders;
+    t_dongle        *dongles;
     pthread_t       thread;
     pthread_mutex_t mutex;
     t_data          data;
