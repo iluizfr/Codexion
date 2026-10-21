@@ -70,6 +70,7 @@ void    init_coders(t_coder *coders, int n_coders, t_dongle *dongles, int compil
         else
             coders[i].left_dongle = &dongles[i - 1];
 
+        coders[i].finished = 0;
         coders[i].id = i + 1;
         coders[i].compile_count = 0;
         coders[i].right_dongle = &dongles[i];
@@ -119,22 +120,27 @@ int     compile(t_coder *coder, t_manager *manager)
     }
 
     pthread_mutex_lock(&first->mutex);
-    printf("%ld %d has taken a dongle\n", elapsed_time(manager), coder->id);
-
+    log_message(manager, elapsed_time(manager), coder->id, "has taken a dongle\n");
     pthread_mutex_lock(&second->mutex);
-    printf("%ld %d has taken a dongle\n", elapsed_time(manager), coder->id);
+    log_message(manager, elapsed_time(manager), coder->id, "has taken a dongle\n");
 
-    printf("%ld %d is compiling\n", elapsed_time(manager), coder->id);
-    usleep(manager->data.time_to_compile * 1000);
-
+    pthread_mutex_lock(&manager->mutex);
+    if (manager->stop)
+    {
+        pthread_mutex_unlock(&manager->mutex);
+        pthread_mutex_unlock(&second->mutex);
+        pthread_mutex_unlock(&first->mutex);
+        return (0);
+    }
     coder->last_compile = get_time();
+    pthread_mutex_unlock(&manager->mutex);
+    log_message(manager, elapsed_time(manager), coder->id, "is compiling");
+
+    usleep(manager->data.time_to_compile * 1000);
     coder->compile_count++;
   
     pthread_mutex_unlock(&second->mutex);
-    //usleep(manager->data.dongle_cooldown * 1000);
-
     pthread_mutex_unlock(&first->mutex);
-    //usleep(manager->data.dongle_cooldown * 1000);
 
     debug(coder);
 
@@ -145,33 +151,28 @@ int     compile(t_coder *coder, t_manager *manager)
 
  void	*coders_routine(void *arg)
  {
-     t_coder     *coder;
+     t_coder        *coder;
+     t_manager      *manager;
      
     coder = (t_coder *)arg;
+    manager = coder->manager;
     if (coder->manager->data.number_of_coders == 1)
-        {
-            pthread_mutex_lock(&coder->left_dongle->mutex);
-            printf("%ld %d has taken a dongle\n",
-                elapsed_time(coder->manager), coder->id);
-
-            while (!has_burned(coder, coder->manager))
-                usleep(1000);
-
-            printf("%ld %d burned out\n",
-                elapsed_time(coder->manager), coder->id);
-
-            pthread_mutex_unlock(&coder->left_dongle->mutex);
-            return NULL;
-        }
-    while (need_to_compile(coder, coder->compiles_required))
     {
-        if (has_burned(coder, coder->manager))
-        {
-            printf("%ld %d burned out\n", elapsed_time(coder->manager), coder->id);
-            return NULL;
-        }
-        compile(coder, coder->manager);
+        pthread_mutex_lock(&coder->left_dongle->mutex);
+        log_message(manager, elapsed_time(manager), coder->id, "has taken a dongle");
+
+        while (!simulation_stopped(manager))
+            usleep(1000);
+        pthread_mutex_unlock(&coder->left_dongle->mutex);
     }
+    else
+    {
+        while (need_to_compile(coder, coder->compiles_required) && !simulation_stopped(manager))
+            compile(coder, manager);
+    }
+    pthread_mutex_lock(&manager->mutex);
+    coder->finished = 1;
+    pthread_mutex_unlock(&manager->mutex);
     return NULL;
 }
 
@@ -182,16 +183,27 @@ void    *manager_routine(void *arg)
 
     i = 0;
     manager = (t_manager *)arg;
+    if (pthread_create(&manager->monitor_thread, NULL, monitor_routine, manager) != 0)
+    {
+        stop_simulation(manager);
+        return NULL;
+    }
+
     while (i < manager->data.number_of_coders)
     {
         if (pthread_create(&manager->coders[i].thread, NULL, coders_routine, &manager->coders[i]) != 0)
-            return NULL;
+        {
+            stop_simulation(manager);
+            break;
+        }
         i++;
     }
     i = 0;
     while (i < manager->data.number_of_coders)
         pthread_join(manager->coders[i++].thread, NULL);
 
+    stop_simulation(manager);
+    pthread_join(manager->monitor_thread, NULL);
     clean(manager);
     return NULL;
 }
@@ -204,6 +216,9 @@ void    run(t_data data)
     t_dongle    dongles[data.number_of_coders];
     t_manager   manager;
 
+    manager.stop = 0;
+    pthread_mutex_init(&manager.mutex, NULL);
+    pthread_mutex_init(&manager.log_mutex, NULL);
     manager.data = data;
     manager.n_compiles = 0;
     manager.coders = coders;
