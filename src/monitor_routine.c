@@ -1,14 +1,15 @@
 #include "codexion.h"
 
+/*monitor routine*/
 void    *monitor_routine(void *arg)
 {
-    t_manager   *manager;
     int         i;
+    t_manager   *manager;
     int         burned_id;
     long        current_time;
 
     manager = (t_manager *)arg;
-    while (!simulation_stopped(manager))
+    while (!is_stopped(manager))
     {
         burned_id = 0;
         current_time = get_time();
