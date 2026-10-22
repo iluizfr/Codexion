@@ -21,13 +21,15 @@ void    debug(t_coder *coder)
     refactor(coder);
 }
 
+
+
 /*The compile action performed by the coder*/
-int     compile(t_coder *coder, t_manager *manager)
+int    compile(t_coder *coder, t_manager *manager)
 {
     t_dongle    *first;
     t_dongle    *second;
 
-    if (coder->left_dongle->dogle_id < coder->right_dongle->dogle_id)
+    if (coder->left_dongle->dongle_id < coder->right_dongle->dongle_id)
     {
         first = coder->left_dongle;
         second = coder->right_dongle;
@@ -42,7 +44,6 @@ int     compile(t_coder *coder, t_manager *manager)
     log_message(manager, elapsed_time(manager), coder->id, "has taken a dongle");
     pthread_mutex_lock(&second->mutex);
     log_message(manager, elapsed_time(manager), coder->id, "has taken a dongle");
-
     pthread_mutex_lock(&manager->mutex);
     if (manager->stop)
     {
@@ -54,14 +55,10 @@ int     compile(t_coder *coder, t_manager *manager)
     coder->last_compile = get_time();
     pthread_mutex_unlock(&manager->mutex);
     log_message(manager, elapsed_time(manager), coder->id, "is compiling");
-
     usleep(manager->data.time_to_compile * 1000);
     coder->compile_count++;
-  
     pthread_mutex_unlock(&second->mutex);
     pthread_mutex_unlock(&first->mutex);
-
     debug(coder);
-
     return 1;
 }

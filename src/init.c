@@ -25,8 +25,9 @@ void    init_dongles(t_dongle *dongles, int n_coders, int cooldown)
     i = 0;
     while (i < n_coders)
     {
-        dongles[i].dogle_id = i + 1;
-        dongles[i].dogle_cooldown = cooldown;
+        dongles[i].dongle_id = i + 1;
+        dongles[i].dongle_cooldown = cooldown;
+        dongles[i].avaliable_at = 0;
         pthread_mutex_init(&dongles[i].mutex, NULL);
         i++;
     }

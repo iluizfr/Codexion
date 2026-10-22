@@ -28,8 +28,9 @@ typedef struct
 // dongles used by the coders.
 typedef struct
 {
-	int				dogle_id;
-	int				dogle_cooldown;
+	int				dongle_id;
+	int				dongle_cooldown;
+    long            avaliable_at;
 
     pthread_mutex_t	mutex;
 }					t_dongle;
