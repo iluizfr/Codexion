@@ -33,13 +33,39 @@ void    init_dongles(t_dongle *dongles, int n_coders, int cooldown)
     }
 }
 
+/* Returns the color for the coder*/
+char    *colors(int index)
+{
+    switch (index)
+    {
+    case 0:
+        return "\33[32m";
+    case 1:
+        return "\33[33m";
+    case 2:
+        return "\33[34m";
+    case 3:
+        return "\33[35m";
+    case 4:
+        return "\33[36m";
+    case 5:
+        return "\33[37m";
+    case 6:
+        return "\33[38m";
+    case 7:
+        return "\33[39m";
+    case 8:
+        return "\33[40m";
+    default:
+        return "\33[32";
+    }
+}
+
 /*initialize the coders data*/
 void    init_coders(t_coder *coders, int n_coders, t_dongle *dongles, int compiles_required, t_manager *manager)
 {
     int i;
-    char *tcolor;
 
-    tcolor = "\33[32m";
     i = 0;
     while (i < n_coders)
     {
@@ -55,8 +81,7 @@ void    init_coders(t_coder *coders, int n_coders, t_dongle *dongles, int compil
         coders[i].compiles_required = compiles_required;
         coders[i].manager = manager;
         coders[i].last_compile = manager->start_time;
-        tcolor[5] = i + '0';
-        coders[i].color = tcolor;
+        coders[i].color = colors(i % n_coders);
 		i++;
     }
 }

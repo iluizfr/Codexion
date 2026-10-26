@@ -25,7 +25,7 @@ void    log_message(t_manager *manager, long timestamp, int coder_id, const char
     char  *null_color = "\33[0m";
 
     pthread_mutex_lock(&manager->log_mutex);
-    printf("%s %ld %d %s %s\n", color, timestamp, coder_id, message, null_color);
+    printf("%s%ld %d %s%s\n", color, timestamp, coder_id, message, null_color);
     pthread_mutex_unlock(&manager->log_mutex);
 }
 

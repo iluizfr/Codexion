@@ -1,0 +1,29 @@
+codexion
+
+first step the function "parser" checks if the matrix agrv is valid.
+second step, the init_data transforms every indice in int and retornsa struct "data".
+third step, the "run" function:
+
+    The "run" function initializes the coders, dongles, and the manager struct,
+    also their values. And calls the function "manager_routine".
+
+    manager_routine:
+    Creates the monitor "monitor_routine" thread wich is responsable for supervisioning the program.
+    Creates every coder thread with the call of "coder_routine" function who do the coders actions and
+    join all the threads, stops and cleans all at the end of the function.
+
+    monitor_routine:
+    while the manager is not with the stop flag on, the function ispect if the coder has burned out,
+    if the coder did not start to compile in the espected time it mark the flag stop as on and writes
+    the log message of burned out.
+
+    coder_routine:
+    Fisrt checks if only has one coder, if so we try to acquire the dongles, but we only have one so
+    it burns out wich is noted for the "monitor_routine" thread.
+    if we have more than 1 coder the coder only stops when no need to compile anymore.
+    coder_routine calls the "compile function".
+
+    compile:
+    
+
+

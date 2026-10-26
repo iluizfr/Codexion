@@ -20,7 +20,15 @@ void	*coders_routine(void *arg)
     else
     {
         while (need_to_compile(coder, coder->compiles_required) && !is_stopped(manager))
+        {
             compile(coder, manager);
+            if (is_stopped(manager))
+                break;
+            debug(coder);
+            if (is_stopped(manager))
+                break;
+            refactor(coder);
+        }
     }
     pthread_mutex_lock(&manager->mutex);
     coder->finished = 1;
