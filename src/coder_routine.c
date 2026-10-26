@@ -11,7 +11,7 @@ void	*coders_routine(void *arg)
     if (coder->manager->data.number_of_coders == 1)
     {
         pthread_mutex_lock(&coder->left_dongle->mutex);
-        log_message(manager, elapsed_time(manager), coder->id, "has taken a dongle");
+        log_message(manager, elapsed_time(manager), coder->id, "has taken a dongle", coder->color);
 
         while (!is_stopped(manager))
             usleep(1000);

@@ -4,7 +4,7 @@ SRC    = src/init.c src/parser.c src/run.c src/monitor_routine.c src/utils.c mai
 OBJ    = $(SRC:.c=.o)
 CFLAGS = -Wall -Wextra -Werror -g -I include
 CC     = gcc
-DEFAULT_VALUE_FOR_TEST = 2 600 100 100 100 4 100 "fifo"
+DEFAULT_VALUE_FOR_TEST = 5 600 100 100 100 4 100 "fifo"
 VALGRIND = valgrind --leak-check=full --show-leak-kinds=all
 
 all: $(NAME)

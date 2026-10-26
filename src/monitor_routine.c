@@ -28,7 +28,7 @@ void    *monitor_routine(void *arg)
         pthread_mutex_unlock(&manager->mutex);
         if (burned_id != 0)
         {
-            log_message(manager, elapsed_time(manager), burned_id, "burned out");
+            log_message(manager, elapsed_time(manager), burned_id, "burned out", "\33[30m");
             return NULL;
         }
         usleep(1000);

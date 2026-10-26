@@ -20,10 +20,12 @@ void    stop_simulation(t_manager *manager)
 }
 
 /*refactor of the messages*/
-void    log_message(t_manager *manager, long timestamp, int coder_id, const char *message)
+void    log_message(t_manager *manager, long timestamp, int coder_id, const char *message, char *color)
 {
+    char  *null_color = "\33[0m";
+
     pthread_mutex_lock(&manager->log_mutex);
-    printf("%ld %d %s\n", timestamp, coder_id, message);
+    printf("%s %ld %d %s %s\n", color, timestamp, coder_id, message, null_color);
     pthread_mutex_unlock(&manager->log_mutex);
 }
 

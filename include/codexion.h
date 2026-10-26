@@ -39,6 +39,7 @@ typedef struct
 typedef struct	s_coder
 {
     int				id;
+    char            *color;
     int             finished;
     long			last_compile;
     int				compile_count;
@@ -97,7 +98,7 @@ void    refactor(t_coder *coder);
 void    debug(t_coder *coder);
 
 // ------ utils ------
-void    log_message(t_manager *manager, long timestamp, int coder_id, const char *message);
+void    log_message(t_manager *manager, long timestamp, int coder_id, const char *message, char *color);
 int     need_to_compile(t_coder *coder, int compiles_required);
 void    stop_simulation(t_manager *manager);
 int     is_stopped(t_manager *manager);

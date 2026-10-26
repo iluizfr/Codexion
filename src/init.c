@@ -37,7 +37,9 @@ void    init_dongles(t_dongle *dongles, int n_coders, int cooldown)
 void    init_coders(t_coder *coders, int n_coders, t_dongle *dongles, int compiles_required, t_manager *manager)
 {
     int i;
+    char *tcolor;
 
+    tcolor = "\33[32m";
     i = 0;
     while (i < n_coders)
     {
@@ -53,6 +55,8 @@ void    init_coders(t_coder *coders, int n_coders, t_dongle *dongles, int compil
         coders[i].compiles_required = compiles_required;
         coders[i].manager = manager;
         coders[i].last_compile = manager->start_time;
+        tcolor[5] = i + '0';
+        coders[i].color = tcolor;
 		i++;
     }
 }
