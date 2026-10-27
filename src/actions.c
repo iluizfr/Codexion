@@ -3,7 +3,7 @@
 /*The refact action perfomed by the coder*/
 void    refactor(t_coder *coder)
 {
-    if (coder->manager->stop)
+    if (is_stopped(coder->manager))
         return;
 
     log_message(coder->manager,
@@ -16,7 +16,7 @@ void    refactor(t_coder *coder)
 /*The debug action performed by the coder*/
 void    debug(t_coder *coder)
 {
-    if (coder->manager->stop)
+    if (is_stopped(coder->manager))
         return;
 
     log_message(coder->manager,
@@ -50,7 +50,7 @@ int    acquire_dongles(t_coder *coder, t_dongle **first, t_dongle **second)
         *first = coder->right_dongle;
         *second = coder->left_dongle;
     }
-    while (1)
+    while (!is_stopped(coder->manager))
     {
         pthread_mutex_lock(&(*first)->mutex);
         if (get_time() < (*first)->avaliable_at)
@@ -67,8 +67,15 @@ int    acquire_dongles(t_coder *coder, t_dongle **first, t_dongle **second)
             usleep(1000);
             continue;
         }
+        if (is_stopped(coder->manager))
+        {
+            pthread_mutex_unlock(&(*second)->mutex);
+            pthread_mutex_unlock(&(*first)->mutex);
+            return (0);
+        }
         return (1);
     }
+    return (0);
 }
 
 /*The compile action performed by the coder*/
@@ -80,9 +87,8 @@ int    compile(t_coder *coder, t_manager *manager)
     if (!acquire_dongles(coder, &first, &second))
         return (0);
     
-    if (manager->stop)
+    if (is_stopped(manager))
     {
-        pthread_mutex_unlock(&manager->mutex);
         pthread_mutex_unlock(&second->mutex);
         pthread_mutex_unlock(&first->mutex);
         return (0);
@@ -105,7 +111,9 @@ int    compile(t_coder *coder, t_manager *manager)
 
     log_message(manager, elapsed_time(manager), coder->id, "is compiling", coder->color);
     usleep(manager->data.time_to_compile * 1000);
+    pthread_mutex_lock(&manager->mutex);
     coder->compile_count++;
+    pthread_mutex_unlock(&manager->mutex);
 
     release_dongle(second);
     release_dongle(first);

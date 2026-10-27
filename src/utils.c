@@ -32,25 +32,25 @@ void    log_message(t_manager *manager, long timestamp, int coder_id, const char
 /*checks if the coder needs to compile*/
 int     need_to_compile(t_coder *coder, int compiles_required)
 {
-    if (coder->compile_count < compiles_required)
-        return (1);
-    return (0);
+    int compile_count;
+
+    pthread_mutex_lock(&coder->manager->mutex);
+    compile_count = coder->compile_count;
+    pthread_mutex_unlock(&coder->manager->mutex);
+    return (compile_count < compiles_required);
 }
 
 /*destroy the mutex used*/
-void    clean(t_manager *manager)
+void    destroy_mutex(t_manager *manager)
 {
     int i;
 
     i = 0;
-    if (manager->data.number_of_coders == 1)
+    while (i < manager->data.number_of_coders)
     {
-        pthread_mutex_destroy(&manager->coders[0].left_dongle->mutex);
-        pthread_mutex_destroy(&manager->coders[0].right_dongle->mutex);
+        pthread_mutex_destroy(&manager->dongles[i].mutex);
+        i++;
     }
-    else
-    {
-        while (i < manager->data.number_of_coders)
-            pthread_mutex_destroy(&manager->dongles[i++].mutex);
-    }
+    pthread_mutex_destroy(&manager->mutex);
+    pthread_mutex_destroy(&manager->log_mutex);
 }

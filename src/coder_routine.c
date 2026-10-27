@@ -1,7 +1,7 @@
 #include "codexion.h"
 
 /*coders routine*/
-void	*coders_routine(void *arg)
+void	*coder_routine(void *arg)
 {
     t_coder        *coder;
     t_manager      *manager;

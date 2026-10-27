@@ -65,7 +65,6 @@ typedef struct s_manager
     pthread_mutex_t mutex;
 
     pthread_t       monitor_thread;
-    pthread_t       thread;
 
     t_coder         *coders;
     t_dongle        *dongles;
@@ -89,8 +88,8 @@ t_data	init_data(char **argv);
 
 // ------ routines ------
 void    *monitor_routine(void *arg);
-void    *manager_routine(void *arg);
-void	*coders_routine(void *arg);
+void    manager_routine(t_manager *manager);
+void	*coder_routine(void *arg);
 
 // ----- actions -----
 int     compile(t_coder *coder, t_manager *manager);
@@ -102,7 +101,7 @@ void    log_message(t_manager *manager, long timestamp, int coder_id, const char
 int     need_to_compile(t_coder *coder, int compiles_required);
 void    stop_simulation(t_manager *manager);
 int     is_stopped(t_manager *manager);
-void    clean(t_manager *manager);
+void    destroy_mutex(t_manager *manager);
 
 // ------ time management functions ------
 int     has_burned(t_coder *coder, t_manager *manager);
