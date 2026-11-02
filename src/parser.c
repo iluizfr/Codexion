@@ -1,57 +1,68 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   parser.c                                           :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: lde-frei <lde-frei@student.42lisboa.com    +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2026/11/02 17:19:27 by lde-frei          #+#    #+#             */
+/*   Updated: 2026/11/02 17:19:28 by lde-frei         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "codexion.h"
 
-int verify_arg(char *arg)
+int	verify_arg(char *arg)
 {
-    int value;
+	int	value;
 
-    value = atoi(arg);
-    if (value < 0)
-        return (0);
-
-    return (1);
+	value = atoi(arg);
+	if (value < 0)
+		return (0);
+	return (1);
 }
 
-int verify_args(char **argv)
+int	verify_args(char **argv)
 {
-    int i;
-    int j;
+	int	i;
+	int	j;
 
-    j = 1;
-    while (j < 8 && argv[j])
-    {
-        i = 0;
-        while (argv[j][i])
-        {
-            if (!isdigit(argv[j][i]))
-            {
-                printf("In '%s' the '%c' must be a number.\n", argv[j], argv[j][i]);
-                return (-1);
-            }
-            i++;
-        }
-        if (!verify_arg(argv[j]))
-        {
-            printf("'%s' must be positive.", argv[j]);
-            return (-1);
-        }
-        j++;
-    }
-    if ((strcmp(argv[8], "fifo") != 0) && (strcmp(argv[8], "edf") != 0))
-    {
-        printf("Invalid argument, unknow schedular '%s'.\n", argv[8]);
-        return (-1);
-    }
-    return 0;
+	j = 1;
+	while (j < 8 && argv[j])
+	{
+		i = 0;
+		while (argv[j][i])
+		{
+			if (!isdigit(argv[j][i]))
+			{
+				printf("'%s' must be a number.\n", argv[j]);
+				return (-1);
+			}
+			i++;
+		}
+		if (!verify_arg(argv[j]))
+		{
+			printf("'%s' must be positive.", argv[j]);
+			return (-1);
+		}
+		j++;
+	}
+	if ((strcmp(argv[8], "fifo") != 0) && (strcmp(argv[8], "edf") != 0))
+	{
+		printf("Invalid argument, unknow schedular '%s'.\n", argv[8]);
+		return (-1);
+	}
+	return (0);
 }
 
-int parser(int argc, char **argv)
+int	parser(int argc, char **argv)
 {
-    if (argc != 9)
-    {
-        printf("The number of arguments given is invalid.\n");
-        return (0);
-    }
-    if (verify_args(argv) < 0)
-        return 0;
-    return 1;
+	if (argc != 9)
+	{
+		printf("The number of arguments given is invalid.\n");
+		return (0);
+	}
+	if (verify_args(argv) < 0)
+		return (0);
+	return (1);
 }
