@@ -6,31 +6,24 @@
 /*   By: lde-frei <lde-frei@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/02 17:19:22 by lde-frei          #+#    #+#             */
-/*   Updated: 2026/11/02 17:19:23 by lde-frei         ###   ########.fr       */
+/*   Updated: 2026/11/03 15:12:51 by lde-frei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
 
-/*monitor routine*/
-void	*monitor_routine(void *arg)
+void	watch_for_burnout(t_manager *manager, int i, int burned_id, long ctime)
 {
-	int			i;
-	t_manager	*manager;
-	int			burned_id;
-	long		current_time;
-
-	manager = (t_manager *)arg;
 	while (!is_stopped(manager))
 	{
 		burned_id = 0;
-		current_time = get_time();
+		ctime = get_time();
 		pthread_mutex_lock(&manager->mutex);
 		i = 0;
 		while (i < manager->data.number_of_coders)
 		{
 			if (!manager->coders[i].finished
-				&& current_time - manager->coders[i].last_compile
+				&& ctime - manager->coders[i].last_compile
 				>= manager->time_to_burnout)
 			{
 				burned_id = manager->coders[i].id;
@@ -41,12 +34,23 @@ void	*monitor_routine(void *arg)
 		}
 		pthread_mutex_unlock(&manager->mutex);
 		if (burned_id != 0)
-		{
-			log_message(manager, elapsed_time(manager),
-				burned_id, "burned out", "\33[31m");
-			return (NULL);
-		}
+			log_message(manager, burned_id, "burned out", "\33[31m");
 		usleep(1000);
 	}
+}
+
+/*monitor routine*/
+void	*monitor_routine(void *arg)
+{
+	int			i;
+	int			burned_id;
+	long		current_time;
+	t_manager	*manager;
+
+	i = 0;
+	burned_id = 0;
+	current_time = get_time();
+	manager = (t_manager *)arg;
+	watch_for_burnout(manager, i, burned_id, current_time);
 	return (NULL);
 }

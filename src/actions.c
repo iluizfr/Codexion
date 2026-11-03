@@ -6,7 +6,7 @@
 /*   By: lde-frei <lde-frei@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/02 17:18:56 by lde-frei          #+#    #+#             */
-/*   Updated: 2026/11/02 17:18:59 by lde-frei         ###   ########.fr       */
+/*   Updated: 2026/11/03 14:58:52 by lde-frei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -17,9 +17,7 @@ void	refactor(t_coder *coder)
 {
 	if (is_stopped(coder->manager))
 		return ;
-	log_message(coder->manager,
-		elapsed_time(coder->manager),
-		coder->id, "is refactoring", coder->color);
+	log_message(coder->manager, coder->id, "is refactoring", coder->color);
 	usleep(coder->manager->data.time_to_refactor * 1000);
 }
 
@@ -28,9 +26,7 @@ void	debug(t_coder *coder)
 {
 	if (is_stopped(coder->manager))
 		return ;
-	log_message(coder->manager,
-		elapsed_time(coder->manager),
-		coder->id, "is debugging", coder->color);
+	log_message(coder->manager, coder->id, "is debugging", coder->color);
 	usleep(coder->manager->data.time_to_debug * 1000);
 }
 
@@ -58,31 +54,8 @@ int	acquire_dongles(t_coder *coder, t_dongle **first, t_dongle **second)
 		*first = coder->right_dongle;
 		*second = coder->left_dongle;
 	}
-	while (!is_stopped(coder->manager))
-	{
-		pthread_mutex_lock(&(*first)->mutex);
-		if (get_time() < (*first)->avaliable_at)
-		{
-			pthread_mutex_unlock(&(*first)->mutex);
-			usleep(1000);
-			continue ;
-		}
-		pthread_mutex_lock(&(*second)->mutex);
-		if (get_time() < (*second)->avaliable_at)
-		{
-			pthread_mutex_unlock(&(*second)->mutex);
-			pthread_mutex_unlock(&(*first)->mutex);
-			usleep(1000);
-			continue ;
-		}
-		if (is_stopped(coder->manager))
-		{
-			pthread_mutex_unlock(&(*second)->mutex);
-			pthread_mutex_unlock(&(*first)->mutex);
-			return (0);
-		}
+	if (wait_dongles(coder, first, second))
 		return (1);
-	}
 	return (0);
 }
 
@@ -94,16 +67,8 @@ int	compile(t_coder *coder, t_manager *manager)
 
 	if (!acquire_dongles(coder, &first, &second))
 		return (0);
-	if (is_stopped(manager))
-	{
-		pthread_mutex_unlock(&second->mutex);
-		pthread_mutex_unlock(&first->mutex);
-		return (0);
-	}
-	log_message(manager, elapsed_time(manager), coder->id,
-		"has taken a dongle", coder->color);
-	log_message(manager, elapsed_time(manager), coder->id,
-		"has taken a dongle", coder->color);
+	log_message(manager, coder->id, "has taken a dongle", coder->color);
+	log_message(manager, coder->id, "has taken a dongle", coder->color);
 	pthread_mutex_lock(&manager->mutex);
 	if (manager->stop)
 	{
@@ -115,8 +80,7 @@ int	compile(t_coder *coder, t_manager *manager)
 	coder->last_compile = get_time();
 	coder->compile_count++;
 	pthread_mutex_unlock(&manager->mutex);
-	log_message(manager, elapsed_time(manager), coder->id,
-		"is compiling", coder->color);
+	log_message(manager, coder->id, "is compiling", coder->color);
 	usleep(manager->data.time_to_compile * 1000);
 	release_dongle(second);
 	release_dongle(first);

@@ -6,11 +6,20 @@
 /*   By: lde-frei <lde-frei@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/02 17:19:03 by lde-frei          #+#    #+#             */
-/*   Updated: 2026/11/02 17:19:04 by lde-frei         ###   ########.fr       */
+/*   Updated: 2026/11/03 16:21:30 by lde-frei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "codexion.h"
+
+static void	especial_case(t_coder *coder)
+{
+	pthread_mutex_lock(&coder->left_dongle->mutex);
+	log_message(coder->manager, coder->id, "has taken a dongle", coder->color);
+	while (!is_stopped(coder->manager))
+		usleep(1000);
+	pthread_mutex_unlock(&coder->left_dongle->mutex);
+}
 
 /*coders routine*/
 void	*coder_routine(void *arg)
@@ -21,14 +30,7 @@ void	*coder_routine(void *arg)
 	coder = (t_coder *)arg;
 	manager = coder->manager;
 	if (coder->manager->data.number_of_coders == 1)
-	{
-		pthread_mutex_lock(&coder->left_dongle->mutex);
-		log_message(manager, elapsed_time(manager), coder->id,
-			"has taken a dongle", coder->color);
-		while (!is_stopped(manager))
-			usleep(1000);
-		pthread_mutex_unlock(&coder->left_dongle->mutex);
-	}
+		especial_case(coder);
 	else
 	{
 		while (need_to_compile(coder, coder->compiles_required)

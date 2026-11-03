@@ -6,7 +6,7 @@
 /*   By: lde-frei <lde-frei@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/02 17:19:42 by lde-frei          #+#    #+#             */
-/*   Updated: 2026/11/02 17:19:43 by lde-frei         ###   ########.fr       */
+/*   Updated: 2026/11/03 15:16:56 by lde-frei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -32,11 +32,12 @@ void	stop_simulation(t_manager *manager)
 }
 
 /*refactor of the messages*/
-void	log_message(t_manager *manager, long timestamp,
-		int coder_id, const char *message, char *color)
+void	log_message(t_manager *manager, int coder_id,
+		const char *message, char *color)
 {
 	pthread_mutex_lock(&manager->log_mutex);
-	printf("%s%ld %d %s\33[0m\n", color, timestamp, coder_id, message);
+	printf("%s%ld %d %s\33[0m\n", color, elapsed_time(manager),
+		coder_id, message);
 	pthread_mutex_unlock(&manager->log_mutex);
 }
 

@@ -1,6 +1,7 @@
 NAME   = codexion
 SRC    = src/init.c src/parser.c src/run.c src/monitor_routine.c src/utils.c main.c \
-		 src/coder_routine.c src/actions.c src/manager_routine.c src/time.c
+		 src/coder_routine.c src/actions.c src/manager_routine.c src/time.c \
+		 src/actions_utils.c
 OBJ    = $(SRC:.c=.o)
 CFLAGS = -Wall -Wextra -Werror -g -I include
 CC     = gcc

@@ -6,7 +6,7 @@
 /*   By: lde-frei <lde-frei@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/02 17:18:37 by lde-frei          #+#    #+#             */
-/*   Updated: 2026/11/02 17:18:44 by lde-frei         ###   ########.fr       */
+/*   Updated: 2026/11/03 16:31:09 by lde-frei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,8 +24,8 @@
 # include <limits.h>
 
 typedef struct s_manager	t_manager;
-// struct to store the data
-typedef	struct s_data
+// struct to store the data.
+typedef struct s_data
 {
 	int		number_of_coders;
 	int		time_to_burnout;
@@ -95,9 +95,11 @@ void	*coder_routine(void *arg);
 int		compile(t_coder *coder, t_manager *manager);
 void	refactor(t_coder *coder);
 void	debug(t_coder *coder);
+// ------ actions utils ------
+int		wait_dongles(t_coder *coder, t_dongle **first, t_dongle **second);
 // ------ utils ------
-void	log_message(t_manager *manager, long timestamp,
-			int coder_id, const char *message, char *color);
+void	log_message(t_manager *manager, int coder_id,
+			const char *message, char *color);
 int		need_to_compile(t_coder *coder, int compiles_required);
 void	stop_simulation(t_manager *manager);
 int		is_stopped(t_manager *manager);
