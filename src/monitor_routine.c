@@ -6,7 +6,7 @@
 /*   By: lde-frei <lde-frei@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/02 17:19:22 by lde-frei          #+#    #+#             */
-/*   Updated: 2026/11/03 15:12:51 by lde-frei         ###   ########.fr       */
+/*   Updated: 2026/11/03 18:39:54 by lde-frei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,7 @@ void	watch_for_burnout(t_manager *manager, int i, int burned_id, long ctime)
 				>= manager->time_to_burnout)
 			{
 				burned_id = manager->coders[i].id;
+				manager->coders[i].burned = 1;
 				manager->stop = 1;
 				break ;
 			}

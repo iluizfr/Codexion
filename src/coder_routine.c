@@ -6,7 +6,7 @@
 /*   By: lde-frei <lde-frei@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/02 17:19:03 by lde-frei          #+#    #+#             */
-/*   Updated: 2026/11/03 16:21:30 by lde-frei         ###   ########.fr       */
+/*   Updated: 2026/11/03 18:40:40 by lde-frei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,28 +25,27 @@ static void	especial_case(t_coder *coder)
 void	*coder_routine(void *arg)
 {
 	t_coder		*coder;
-	t_manager	*manager;
 
 	coder = (t_coder *)arg;
-	manager = coder->manager;
 	if (coder->manager->data.number_of_coders == 1)
 		especial_case(coder);
 	else
 	{
 		while (need_to_compile(coder, coder->compiles_required)
-			&& !is_stopped(manager))
+			&& !is_stopped(coder->manager))
 		{
-			compile(coder, manager);
-			if (is_stopped(manager))
+			compile(coder, coder->manager);
+			if (is_stopped(coder->manager))
 				break ;
 			debug(coder);
-			if (is_stopped(manager))
+			if (is_stopped(coder->manager))
 				break ;
 			refactor(coder);
 		}
 	}
-	pthread_mutex_lock(&manager->mutex);
-	coder->finished = 1;
-	pthread_mutex_unlock(&manager->mutex);
+	pthread_mutex_lock(&coder->manager->mutex);
+	if (!coder->burned && coder->compile_count == coder->compiles_required)
+		coder->finished = 1;
+	pthread_mutex_unlock(&coder->manager->mutex);
 	return (NULL);
 }
