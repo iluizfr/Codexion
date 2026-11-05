@@ -6,7 +6,7 @@
 /*   By: lde-frei <lde-frei@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/02 17:19:22 by lde-frei          #+#    #+#             */
-/*   Updated: 2026/11/03 18:39:54 by lde-frei         ###   ########.fr       */
+/*   Updated: 2026/11/05 02:13:32 by lde-frei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -35,7 +35,12 @@ void	watch_for_burnout(t_manager *manager, int i, int burned_id, long ctime)
 		}
 		pthread_mutex_unlock(&manager->mutex);
 		if (burned_id != 0)
+		{
 			log_message(manager, burned_id, "burned out", "\33[31m");
+			pthread_mutex_lock(&manager->priority_queue.mutex);
+			pthread_cond_broadcast(&manager->priority_queue.cond);
+			pthread_mutex_unlock(&manager->priority_queue.mutex);
+		}
 		usleep(1000);
 	}
 }

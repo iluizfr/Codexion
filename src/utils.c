@@ -6,7 +6,7 @@
 /*   By: lde-frei <lde-frei@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/02 17:19:42 by lde-frei          #+#    #+#             */
-/*   Updated: 2026/11/03 15:16:56 by lde-frei         ###   ########.fr       */
+/*   Updated: 2026/11/04 18:58:34 by lde-frei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -29,6 +29,9 @@ void	stop_simulation(t_manager *manager)
 	pthread_mutex_lock(&manager->mutex);
 	manager->stop = 1;
 	pthread_mutex_unlock(&manager->mutex);
+	pthread_mutex_lock(&manager->priority_queue.mutex);
+	pthread_cond_broadcast(&manager->priority_queue.cond);
+	pthread_mutex_unlock(&manager->priority_queue.mutex);
 }
 
 /*refactor of the messages*/

@@ -6,7 +6,7 @@
 /*   By: lde-frei <lde-frei@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/02 17:19:03 by lde-frei          #+#    #+#             */
-/*   Updated: 2026/11/03 18:40:40 by lde-frei         ###   ########.fr       */
+/*   Updated: 2026/11/05 02:50:11 by lde-frei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,7 +34,8 @@ void	*coder_routine(void *arg)
 		while (need_to_compile(coder, coder->compiles_required)
 			&& !is_stopped(coder->manager))
 		{
-			compile(coder, coder->manager);
+			if (!compile(coder, coder->manager))
+				break ;
 			if (is_stopped(coder->manager))
 				break ;
 			debug(coder);

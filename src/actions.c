@@ -6,7 +6,7 @@
 /*   By: lde-frei <lde-frei@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/02 17:18:56 by lde-frei          #+#    #+#             */
-/*   Updated: 2026/11/03 14:58:52 by lde-frei         ###   ########.fr       */
+/*   Updated: 2026/11/05 02:12:13 by lde-frei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -33,10 +33,16 @@ void	debug(t_coder *coder)
 /* Unlocks the dongle and updates the time of avaliability
    of the dongle.
 */
-void	release_dongle(t_dongle *dongle)
+void	release_dongle(t_dongle *dongle, t_manager *manager)
 {
+	t_priority_queue	*queue;
+
 	dongle->avaliable_at = get_time() + dongle->dongle_cooldown;
 	pthread_mutex_unlock(&dongle->mutex);
+	queue = &manager->priority_queue;
+	pthread_mutex_lock(&queue->mutex);
+	pthread_cond_broadcast(&queue->cond);
+	pthread_mutex_unlock(&queue->mutex);
 }
 
 /* checks the order to acquire the dongle and waits the dongle
@@ -82,7 +88,7 @@ int	compile(t_coder *coder, t_manager *manager)
 	pthread_mutex_unlock(&manager->mutex);
 	log_message(manager, coder->id, "is compiling", coder->color);
 	usleep(manager->data.time_to_compile * 1000);
-	release_dongle(second);
-	release_dongle(first);
+	release_dongle(second, manager);
+	release_dongle(first, manager);
 	return (1);
 }

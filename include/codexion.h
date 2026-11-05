@@ -6,7 +6,7 @@
 /*   By: lde-frei <lde-frei@student.42lisboa.com    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2026/11/02 17:18:37 by lde-frei          #+#    #+#             */
-/*   Updated: 2026/11/03 18:42:47 by lde-frei         ###   ########.fr       */
+/*   Updated: 2026/11/05 02:23:54 by lde-frei         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -24,6 +24,7 @@
 # include <limits.h>
 
 typedef struct s_manager	t_manager;
+typedef struct s_coder		t_coder;
 // struct to store the data.
 typedef struct s_data
 {
@@ -37,7 +38,7 @@ typedef struct s_data
 	char	*scheduler;
 }			t_data;
 // dongles used by the coders.
-typedef struct s_dongle
+typedef struct	s_dongle
 {
 	int				dongle_id;
 	int				dongle_cooldown;
@@ -46,7 +47,7 @@ typedef struct s_dongle
 	pthread_mutex_t	mutex;
 }					t_dongle;
 // coders (threads) who do the work.
-typedef struct s_coder
+struct	s_coder
 {
 	int				id;
 	char			*color;
@@ -60,23 +61,43 @@ typedef struct s_coder
 	t_dongle		*left_dongle;
 	t_manager		*manager;
 	pthread_t		thread;
-}					t_coder;
-// manager  struct wich have all coders, dongles and the monitor thread.
-typedef struct s_manager
-{
-	int				stop;
-	int				n_compiles;
-	int				required_compiles;
-	long			time_to_burnout;
-	long			start_time;
-	pthread_mutex_t	log_mutex;
-	pthread_mutex_t	mutex;
-	pthread_t		monitor_thread;
-	t_coder			*coders;
-	t_dongle		*dongles;
-	t_data			data;
+};
 
-}					t_manager;
+typedef struct	s_request
+{
+	t_coder			*coder;
+	long			deadline;
+	unsigned long	order;
+}	t_request;
+
+typedef struct s_priority_queue
+{
+	t_request		*heap;
+	int				size;
+	int				capacity;
+	unsigned long	next_order;
+	int				edf;
+	t_coder			*acquiring;
+	pthread_mutex_t	mutex;
+	pthread_cond_t	cond;
+}	t_priority_queue;
+// manager  struct wich have all coders, dongles and the monitor thread.
+struct	s_manager
+{
+	int					stop;
+	int					n_compiles;
+	int					required_compiles;
+	long				time_to_burnout;
+	long				start_time;
+	pthread_mutex_t		log_mutex;
+	pthread_mutex_t		mutex;
+	t_priority_queue	priority_queue;
+	pthread_t			monitor_thread;
+	t_coder				*coders;
+	t_dongle			*dongles;
+	t_data				data;
+
+};
 // ------ FUNCTIONS ------
 
 // ------ run function ------
@@ -92,10 +113,18 @@ t_data	init_data(char **argv);
 void	*monitor_routine(void *arg);
 void	manager_routine(t_manager *manager);
 void	*coder_routine(void *arg);
+// ------ priority queue ------
+int		init_priority_queue(t_priority_queue *queue,
+			int capacity, char *scheduler);
+void	destroy_priority_queue(t_priority_queue *queue);
+int		enqueue(t_priority_queue *queue, t_coder *coder, long deadline);
+t_coder	*dequeue(t_priority_queue *queue);
+int		remove_from_queue(t_priority_queue *queue, t_coder *coder);
 // ----- actions -----
 int		compile(t_coder *coder, t_manager *manager);
 void	refactor(t_coder *coder);
 void	debug(t_coder *coder);
+void	release_dongle(t_dongle *dongle, t_manager *manager);
 // ------ actions utils ------
 int		wait_dongles(t_coder *coder, t_dongle **first, t_dongle **second);
 // ------ utils ------
